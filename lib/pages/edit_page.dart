@@ -1,20 +1,35 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
-import 'package:todo_app/components/my_button.dart';
-import 'package:todo_app/components/my_text_fiels.dart';
-import 'package:todo_app/constants/colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
-class AddPage extends StatefulWidget {
-  const AddPage({super.key});
+import '../components/my_button.dart';
+import '../components/my_text_fiels.dart';
+import '../constants/colors.dart';
+
+class EditPage extends StatefulWidget {
+ final String title;
+ final String descriptive;
+   final String docId;
+  const EditPage({super.key,required this.title,required this.descriptive,required this.docId});
+
 
   @override
-  State<AddPage> createState() => _AddPageState();
+  State<EditPage> createState() => _EditPageState();
 }
 
-class _AddPageState extends State<AddPage> {
+class _EditPageState extends State<EditPage> {
   TextEditingController title=TextEditingController();
   TextEditingController descriptive=TextEditingController();
+
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    title.text=widget.title;
+    descriptive.text=widget.descriptive;
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,7 +40,7 @@ class _AddPageState extends State<AddPage> {
             Navigator.pop(context);
           },
         ),
-        title: Text('Add Task',style: TextStyle(color: normal,fontSize: 20,fontWeight: FontWeight.bold),),
+        title: Text('Edit Task',style: TextStyle(color: normal,fontSize: 20,fontWeight: FontWeight.bold),),
         centerTitle: true,
         backgroundColor: primaryColor,
       ),
@@ -41,27 +56,24 @@ class _AddPageState extends State<AddPage> {
           ),
           Padding(
             padding: const EdgeInsets.all(14.0),
-            child: MYButton(text: 'Add Task', onPressed: (){
-              print("__________STARTED..");
-              FirebaseAuth firebaseAuth=FirebaseAuth.instance;
-              FirebaseFirestore fireStore= FirebaseFirestore.instance;
-              fireStore.collection('Tasks').doc().set({
-                'title':title.text.trim(),
-                'description':descriptive.text.trim(),
-                'userId':firebaseAuth.currentUser !.uid,
-                'time':Timestamp.now()
-              }).then((value) {
-                print("__________eNDEDED..");
+            child: MYButton(text: 'Edit Task', onPressed: (){
+
+              FirebaseFirestore firestore=FirebaseFirestore.instance;
+              firestore.collection('Tasks').doc(widget.docId).update({
+                "title": title.text,
+                "description":descriptive.text,
+              }).
+              then((value) {
                 descriptive.clear();
                 title.clear();
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar
-                  (content: Text("Task added Succesfully"),
-                backgroundColor: Colors.green.shade400,),
+                  (content: Text("Task edited Succesfully"),
+                  backgroundColor: Colors.green.shade400,),
                 );
                 Navigator.pop(context);
               }).catchError ((error){
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text('Failed to add task: $error'),
+                  content: Text('Failed to edit task: $error'),
                   backgroundColor: Colors.red,),
                 );
               });
@@ -72,3 +84,7 @@ class _AddPageState extends State<AddPage> {
     );
   }
 }
+
+
+
+
