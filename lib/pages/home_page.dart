@@ -1,9 +1,9 @@
-
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todo_app/constants/colors.dart';
+import 'package:todo_app/pages/Authentication/login.dart';
 import 'package:todo_app/pages/add_page.dart';
 import 'package:todo_app/pages/edit_page.dart';
 class HomePage extends StatefulWidget {
@@ -15,12 +15,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<Map<String, dynamic>> tasks = [];
-
-  @override
-  void initState() {
-    super.initState();
-    getData();
-  }
+  String ? name;
+  String ? email;
 
   Future<void> getData() async {
     FirebaseAuth firebaseAuth = FirebaseAuth.instance;
@@ -39,10 +35,23 @@ class _HomePageState extends State<HomePage> {
 
       tasks = listOfTasks;
       setState(() {});
-      setState(() {});
     }
   }
-    Widget build(BuildContext context) {
+      Future<void> userData() async{
+        SharedPreferences data= await SharedPreferences.getInstance();
+        name = data.getString('name');
+        email = data.getString('email');
+      }
+  @override
+  void initState() {
+    super.initState();
+    getData();
+    userData();
+    setState(() {
+    });
+  }
+
+  Widget build(BuildContext context) {
       return Scaffold(
         appBar: AppBar(
           title: Text('Daily tasks', style: TextStyle(
@@ -50,12 +59,17 @@ class _HomePageState extends State<HomePage> {
           backgroundColor: primaryColor,
           centerTitle: true,
         ),
+
         drawer: Drawer(
           child: Column(
             children: [
               UserAccountsDrawerHeader(
-                  accountName: Text('Aravind'),
-                  accountEmail: Text("aravindr330@gmail.com")),
+                  decoration: BoxDecoration(
+                    color: primaryColor,
+                  ),
+                  accountName: Text(name ?? '',style: TextStyle(color: normal,fontSize: 20,fontWeight: FontWeight.bold),),
+                  accountEmail: Text(email ?? '',style: TextStyle(color: normal,fontSize: 17,fontWeight: FontWeight.bold),),
+              ),
               ListTile(
                 title: Text('Delete'),
                 leading: IconButton(
@@ -67,7 +81,12 @@ class _HomePageState extends State<HomePage> {
               ListTile(
                 title: Text('Log out'),
                 leading: IconButton(
-                  onPressed: (){},
+                  onPressed: ()async {
+                    SharedPreferences data= await SharedPreferences.getInstance();
+                      data.setBool('isSignedIn', false).then((value) {
+                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>LoginPage()));
+                      });
+                  },
                   icon: Icon(Icons.login_outlined),
                 ),
               ),
